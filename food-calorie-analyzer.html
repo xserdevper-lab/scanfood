@@ -384,20 +384,16 @@ function resetApp() {
 }
 
 async function analyze() {
-
   if (!imageBase64) return;
 
   const btn = document.getElementById('analyze-btn');
-
   btn.disabled = true;
   btn.textContent = 'ANALYZING...';
 
   document.getElementById('error-section').classList.add('hidden');
   document.getElementById('results').classList.add('hidden');
 
-  const ings = [...PROTEIN, ...SEASONING]
-    .filter(i => selected[i.id]);
-
+  const ings = [...PROTEIN, ...SEASONING].filter(i => selected[i.id]);
   const ingText = ings.length
     ? ings.map(i => `${i.label}(${amounts[i.id] || 'Med'})`).join(', ')
     : 'not specified';
@@ -418,14 +414,14 @@ async function analyze() {
       }
     );
 
-    const result = await res.json();
+    const parsed = await res.json();
 
-    if (result.error) {
-      throw new Error(result.error);
+    if (parsed.error) {
+      throw new Error(parsed.error);
     }
 
-    renderResult(result);
-    addToLog(result);
+    renderResult(parsed);
+    addToLog(parsed);
 
   } catch (e) {
 
