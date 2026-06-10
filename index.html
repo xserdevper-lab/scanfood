@@ -412,10 +412,37 @@ async function analyze() {
       }
     );
 
-    const parsed = await res.json();
+    const text = await res.text();
+
+    console.log("RAW RESPONSE:", text);
+
+    let parsed;
+
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      throw new Error("Server did not return valid JSON:\n" + text);
+    }
+
+    console.log("PARSED RESPONSE:", parsed);
 
     if (parsed.error) {
-      throw new Error(parsed.error);
+
+      const errorMessage =
+        typeof parsed.error === 'string'
+          ? parsed.error
+          : JSON.stringify(parsed.error, null, 2);
+
+      throw new Error(errorMessage);
+    }
+
+    if (parsed.type === 'error') {
+
+      const errorMessage =
+        parsed.error?.message ||
+        JSON.stringify(parsed, null, 2);
+
+      throw new Error(errorMessage);
     }
 
     renderResult(parsed);
@@ -423,9 +450,10 @@ async function analyze() {
 
   } catch (e) {
 
-    console.error(e);
+    console.error("FULL ERROR:", e);
 
     document.getElementById('error-section').classList.remove('hidden');
+
     document.getElementById('error-msg').textContent =
       '⚠️ ' + e.message;
 
