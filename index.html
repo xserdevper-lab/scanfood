@@ -400,17 +400,15 @@ async function analyze() {
 
   try {
 
+    const formData = new FormData();
+    formData.append('image', imageBase64);
+    formData.append('ingredients', ingText);
+
     const res = await fetch(
       'https://script.google.com/macros/s/AKfycbyNgTddIe64jKr7PNn5rN8L5VlXjRRrb6kdhkUM_-HN3NK8S1ByYdHvVOTdFQmFyMFR/exec',
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          image: imageBase64,
-          ingredients: ingText
-        })
+        body: formData
       }
     );
 
@@ -429,7 +427,7 @@ async function analyze() {
 
     document.getElementById('error-section').classList.remove('hidden');
     document.getElementById('error-msg').textContent =
-      '⚠️ Analysis failed. Please try again.';
+      '⚠️ ' + e.message;
 
   } finally {
 
@@ -438,7 +436,6 @@ async function analyze() {
 
   }
 }
-
 function setCircle(svgId, pct, circ) {
   const arc = document.querySelector('#' + svgId + ' circle:last-child');
   if (!arc) return;
