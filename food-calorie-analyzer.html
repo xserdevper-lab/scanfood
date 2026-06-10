@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calorie AI</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Impact&family=Inter:wght@400;600;700;900&display=swap" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #f2f2f7;
+    font-family: 'Inter', sans-serif;
+    color: #1c1c1e;
+    min-height: 100vh;
+  }
+  .app { max-width: 430px; margin: 0 auto; padding-bottom: 52px; }
+
+  .impact { font-family: 'Impact', 'Inter', sans-serif; letter-spacing: -0.05em; }
+
+  /* Header */
+  .header { background: #fff; padding: 18px 20px 14px; border-bottom: 1px solid #e5e5ea; }
+  .header h1 { font-family: 'Impact', sans-serif; font-size: 30px; letter-spacing: -0.05em; line-height: 1; }
+  .header p { font-size: 13px; color: #8e8e93; margin-top: 3px; }
+
+  /* Section label */
+  .section { margin: 16px 16px 0; }
+  .sec-label { font-size: 11px; font-weight: 700; color: #8e8e93; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 8px; }
+  .sec-label span { font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+  /* Card */
+  .card { background: #fff; border-radius: 18px; overflow: hidden; }
+
+  /* Image area */
+  .img-placeholder {
+    height: 160px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px; cursor: pointer;
+  }
+  .img-icon {
+    width: 56px; height: 56px; border-radius: 16px; background: #f2f2f7;
+    display: flex; align-items: center; justify-content: center; font-size: 28px;
+  }
+  .img-placeholder p { font-size: 14px; color: #8e8e93; }
+  .img-preview { position: relative; }
+  .img-preview img { width: 100%; height: 210px; object-fit: cover; display: block; }
+  .img-clear {
+    position: absolute; top: 10px; right: 10px;
+    width: 30px; height: 30px; border-radius: 50%; border: none;
+    background: rgba(0,0,0,0.48); color: #fff; font-size: 15px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Buttons row */
+  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .btn-outline {
+    padding: 12px 0; border-radius: 13px; border: 1.5px solid #e5e5ea;
+    background: #fff; color: #1c1c1e; font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+  .btn-dark {
+    padding: 12px 0; border-radius: 13px; border: none;
+    background: #1c1c1e; color: #fff; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+
+  /* Ingredients */
+  .ing-card { background: #fff; border-radius: 18px; padding: 14px 16px 16px; }
+  .ing-group-label { font-size: 12px; font-weight: 600; color: #8e8e93; margin-bottom: 10px; }
+  .ing-divider { height: 1px; background: #f2f2f7; margin: 10px 0 12px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+  .tag-wrap { display: flex; flex-direction: column; gap: 5px; }
+  .tag {
+    padding: 7px 14px; border-radius: 20px; border: 1.5px solid #e5e5ea;
+    background: #fff; color: #3a3a3c; font-size: 13px; font-weight: 500;
+    cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.15s;
+  }
+  .tag.active-dark { border-color: #1c1c1e; background: #1c1c1e; color: #fff; }
+  .tag.active-orange { border-color: #ff9500; background: #fff8ee; color: #c97500; }
+  .amounts { display: flex; gap: 4px; }
+  .amt {
+    padding: 3px 10px; border-radius: 10px; border: none;
+    background: #f2f2f7; color: #8e8e93; font-size: 11px;
+    cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+  .amt.active-dark { background: #1c1c1e; color: #fff; }
+  .amt.active-orange { background: #ff9500; color: #fff; }
+
+  /* Analyze button */
+  .btn-analyze {
+    width: 100%; padding: 15px 0; border-radius: 14px; border: none;
+    background: #1c1c1e; color: #fff;
+    font-family: 'Impact', sans-serif; font-size: 16px; letter-spacing: 1px;
+    cursor: pointer; transition: opacity 0.2s;
+  }
+  .btn-analyze:disabled { background: #e5e5ea; color: #c7c7cc; cursor: not-allowed; }
+
+  /* Error */
+  .error-box { background: #fff2f2; border-radius: 12px; padding: 12px 16px; margin-top: 12px; font-size: 13px; color: #ff3b30; }
+
+  /* Result */
+  .cal-card { background: #fff; border-radius: 18px; padding: 20px; margin-bottom: 10px; }
+  .cal-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .cal-label { font-size: 12px; color: #8e8e93; margin-bottom: 6px; }
+  .cal-num { font-family: 'Impact', sans-serif; font-size: 56px; letter-spacing: -0.05em; color: #1c1c1e; line-height: 1; }
+  .cal-unit { font-size: 15px; color: #8e8e93; margin-top: 4px; }
+  .circle-wrap { position: relative; width: 64px; height: 64px; margin-top: 4px; flex-shrink: 0; }
+  .circle-pct {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; font-size: 11px; color: #8e8e93;
+  }
+  .food-name { font-family: 'Impact', sans-serif; font-size: 17px; letter-spacing: -0.05em; color: #1c1c1e; margin-top: 14px; }
+  .food-desc { font-size: 13px; color: #8e8e93; margin-top: 3px; line-height: 1.5; }
+  .cal-bar-bg { margin-top: 14px; background: #f2f2f7; border-radius: 8px; height: 6px; }
+  .cal-bar { height: 100%; border-radius: 8px; background: #1c1c1e; transition: width 0.8s ease; }
+  .cal-sub { font-size: 11px; color: #c7c7cc; margin-top: 5px; }
+
+  /* Macros */
+  .macro-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
+  .macro-card { background: #fff; border-radius: 16px; padding: 14px 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+  .macro-val { font-family: 'Impact', sans-serif; font-size: 26px; letter-spacing: -0.05em; color: #1c1c1e; }
+  .macro-unit { font-size: 13px; color: #8e8e93; margin-left: 2px; font-family: 'Inter', sans-serif; font-weight: 400; letter-spacing: 0; }
+  .macro-label { font-size: 12px; color: #8e8e93; }
+
+  /* Extras */
+  .extras-card { background: #fff; border-radius: 18px; padding: 14px 18px; margin-bottom: 10px; display: flex; gap: 28px; }
+  .extra-label { font-size: 12px; color: #8e8e93; }
+  .extra-val { font-family: 'Impact', sans-serif; font-size: 22px; letter-spacing: -0.05em; }
+  .extra-unit { font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 400; letter-spacing: 0; }
+
+  /* Tip */
+  .tip-card { background: #fff; border-radius: 18px; padding: 14px 16px; margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; }
+  .tip-icon { width: 34px; height: 34px; border-radius: 10px; background: #f2f2f7; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+  .tip-title { font-family: 'Impact', sans-serif; font-size: 14px; letter-spacing: 0.5px; color: #1c1c1e; margin-bottom: 3px; }
+  .tip-text { font-size: 13px; color: #8e8e93; line-height: 1.55; }
+
+  /* Log */
+  .log-list { background: #fff; border-radius: 18px; overflow: hidden; }
+  .log-item { padding: 13px 16px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid #f2f2f7; }
+  .log-item:last-child { border-bottom: none; }
+  .log-img { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; flex-shrink: 0; }
+  .log-cals { font-family: 'Impact', sans-serif; font-size: 16px; letter-spacing: -0.05em; color: #1c1c1e; }
+  .log-cals span { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 400; color: #8e8e93; letter-spacing: 0; }
+  .log-name { font-size: 13px; color: #8e8e93; margin-top: 2px; }
+  .log-macros { font-size: 12px; color: #c7c7cc; white-space: nowrap; }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>CALORIE AI</h1>
+    <p>Snap your food. Know your calories.</p>
+  </div>
+
+  <!-- Scan Food -->
+  <div class="section">
+    <div class="sec-label">Scan Food</div>
+    <div class="card" id="img-card">
+      <div class="img-placeholder" id="img-placeholder" onclick="document.getElementById('file-input').click()">
+        <div class="img-icon">📷</div>
+        <p>Tap to add a food photo</p>
+      </div>
+      <div class="img-preview hidden" id="img-preview">
+        <img id="preview-img" src="" alt="food" />
+        <button class="img-clear" onclick="resetApp()">✕</button>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-outline" onclick="document.getElementById('file-input').click()">🖼️ Photo Library</button>
+      <button class="btn-dark" onclick="document.getElementById('camera-input').click()">📷 Camera</button>
+    </div>
+    <input type="file" accept="image/*" id="file-input" class="hidden" onchange="handleFile(this)" />
+    <input type="file" accept="image/*" capture="environment" id="camera-input" class="hidden" onchange="handleFile(this)" />
+  </div>
+
+  <!-- Ingredients -->
+  <div class="section">
+    <div class="sec-label">Ingredients <span>(optional)</span></div>
+    <div class="ing-card">
+      <div class="ing-group-label">Protein & Meat</div>
+      <div class="tags" id="protein-tags"></div>
+      <div class="ing-divider"></div>
+      <div class="ing-group-label">Seasonings</div>
+      <div class="tags" id="seasoning-tags"></div>
+    </div>
+  </div>
+
+  <!-- Analyze -->
+  <div class="section">
+    <button class="btn-analyze" id="analyze-btn" onclick="analyze()" disabled>ANALYZE CALORIES</button>
+  </div>
+
+  <div class="section hidden" id="error-section">
+    <div class="error-box" id="error-msg"></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results" class="hidden">
+    <div class="section">
+      <div class="sec-label">Results</div>
+
+      <!-- Calories card -->
+      <div class="cal-card">
+        <div class="cal-top">
+          <div>
+            <div class="cal-label">Calories</div>
+            <div class="cal-num" id="res-cal">0</div>
+            <div class="cal-unit">kcal</div>
+          </div>
+          <div class="circle-wrap">
+            <svg id="circle-svg" width="64" height="64" style="transform:rotate(-90deg);display:block">
+              <circle cx="32" cy="32" r="27" fill="none" stroke="#f2f2f7" stroke-width="5"/>
+              <circle id="circle-arc" cx="32" cy="32" r="27" fill="none" stroke="#1c1c1e" stroke-width="5"
+                stroke-dasharray="0 169.6" stroke-linecap="round"/>
+            </svg>
+            <div class="circle-pct" id="circle-pct">0%</div>
+          </div>
+        </div>
+        <div class="food-name" id="res-name"></div>
+        <div class="food-desc" id="res-desc"></div>
+        <div class="cal-bar-bg"><div class="cal-bar" id="cal-bar" style="width:0%"></div></div>
+        <div class="cal-sub" id="cal-sub"></div>
+      </div>
+
+      <!-- Macros -->
+      <div class="macro-grid">
+        <div class="macro-card">
+          <div><span class="macro-val" id="res-protein">0</span><span class="macro-unit">g</span></div>
+          <div class="macro-label">Protein</div>
+          <svg id="circ-protein" width="32" height="32" style="transform:rotate(-90deg);display:block">
+            <circle cx="16" cy="16" r="13" fill="none" stroke="#f2f2f7" stroke-width="3"/>
+            <circle cx="16" cy="16" r="13" fill="none" stroke="#30d158" stroke-width="3" stroke-dasharray="0 81.7" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="macro-card">
+          <div><span class="macro-val" id="res-carbs">0</span><span class="macro-unit">g</span></div>
+          <div class="macro-label">Carbs</div>
+          <svg id="circ-carbs" width="32" height="32" style="transform:rotate(-90deg);display:block">
+            <circle cx="16" cy="16" r="13" fill="none" stroke="#f2f2f7" stroke-width="3"/>
+            <circle cx="16" cy="16" r="13" fill="none" stroke="#ff9500" stroke-width="3" stroke-dasharray="0 81.7" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="macro-card">
+          <div><span class="macro-val" id="res-fat">0</span><span class="macro-unit">g</span></div>
+          <div class="macro-label">Fat</div>
+          <svg id="circ-fat" width="32" height="32" style="transform:rotate(-90deg);display:block">
+            <circle cx="16" cy="16" r="13" fill="none" stroke="#f2f2f7" stroke-width="3"/>
+            <circle cx="16" cy="16" r="13" fill="none" stroke="#ff3b30" stroke-width="3" stroke-dasharray="0 81.7" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Fiber + Sodium -->
+      <div class="extras-card">
+        <div>
+          <div class="extra-label">Fiber</div>
+          <div class="extra-val" id="res-fiber" style="color:#30d158">—<span class="extra-unit">g</span></div>
+        </div>
+        <div>
+          <div class="extra-label">Sodium</div>
+          <div class="extra-val" id="res-sodium" style="color:#5e5ce6">—<span class="extra-unit">mg</span></div>
+        </div>
+      </div>
+
+      <!-- Tip -->
+      <div class="tip-card" id="tip-card">
+        <div class="tip-icon">💡</div>
+        <div>
+          <div class="tip-title">NUTRITION TIP</div>
+          <div class="tip-text" id="res-tip"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Log -->
+  <div id="log-section" class="hidden">
+    <div class="section">
+      <div class="sec-label">Recently Logged</div>
+      <div class="log-list" id="log-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const PROTEIN = [
+  {id:'chicken',label:'Chicken'},{id:'pork',label:'Pork'},{id:'beef',label:'Beef'},
+  {id:'egg',label:'Egg'},{id:'shrimp',label:'Shrimp'},{id:'fish',label:'Fish'}
+];
+const SEASONING = [
+  {id:'oil',label:'Oil'},{id:'salt',label:'Salt'},{id:'sugar',label:'Sugar'},
+  {id:'pepper',label:'Pepper'},{id:'soysauce',label:'Soy Sauce'},{id:'water',label:'Water'}
+];
+const AMOUNTS = ['Low','Med','High'];
+
+let imageBase64 = null;
+let imageURL = null;
+let selected = {};
+let amounts = {};
+let log = [];
+
+function buildTags() {
+  buildGroup(PROTEIN, 'protein-tags', 'dark');
+  buildGroup(SEASONING, 'seasoning-tags', 'orange');
+}
+
+function buildGroup(list, containerId, style) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  list.forEach(ing => {
+    const wrap = document.createElement('div');
+    wrap.className = 'tag-wrap';
+    wrap.id = 'wrap-' + ing.id;
+
+    const btn = document.createElement('button');
+    btn.className = 'tag' + (selected[ing.id] ? (' active-' + style) : '');
+    btn.textContent = ing.label;
+    btn.onclick = () => toggleIng(ing.id, style, containerId, list);
+
+    wrap.appendChild(btn);
+
+    if (selected[ing.id]) {
+      wrap.appendChild(buildAmounts(ing.id, style));
+    }
+
+    container.appendChild(wrap);
+  });
+}
+
+function buildAmounts(id, style) {
+  const row = document.createElement('div');
+  row.className = 'amounts';
+  AMOUNTS.forEach(a => {
+    const b = document.createElement('button');
+    b.className = 'amt' + (amounts[id] === a ? (' active-' + style) : '');
+    b.textContent = a;
+    b.onclick = (e) => { e.stopPropagation(); amounts[id] = a; buildTags(); };
+    row.appendChild(b);
+  });
+  return row;
+}
+
+function toggleIng(id, style, containerId, list) {
+  if (selected[id]) { delete selected[id]; delete amounts[id]; }
+  else { selected[id] = true; amounts[id] = 'Med'; }
+  buildTags();
+}
+
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  imageURL = URL.createObjectURL(file);
+  document.getElementById('img-placeholder').classList.add('hidden');
+  const preview = document.getElementById('img-preview');
+  preview.classList.remove('hidden');
+  document.getElementById('preview-img').src = imageURL;
+
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('error-section').classList.add('hidden');
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    imageBase64 = e.target.result.split(',')[1];
+    document.getElementById('analyze-btn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetApp() {
+  imageBase64 = null; imageURL = null;
+  selected = {}; amounts = {};
+  document.getElementById('img-placeholder').classList.remove('hidden');
+  document.getElementById('img-preview').classList.add('hidden');
+  document.getElementById('preview-img').src = '';
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('error-section').classList.add('hidden');
+  document.getElementById('analyze-btn').disabled = true;
+  document.getElementById('file-input').value = '';
+  document.getElementById('camera-input').value = '';
+  buildTags();
+}
+
+async function analyze() {
+  if (!imageBase64) return;
+  const btn = document.getElementById('analyze-btn');
+  btn.disabled = true;
+  btn.textContent = 'ANALYZING...';
+  document.getElementById('error-section').classList.add('hidden');
+  document.getElementById('results').classList.add('hidden');
+
+  const ings = [...PROTEIN, ...SEASONING].filter(i => selected[i.id]);
+  const ingText = ings.length ? ings.map(i => `${i.label}(${amounts[i.id]||'Med'})`).join(', ') : 'not specified';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 } },
+            { type: 'text', text: `You are a nutrition expert. Analyze the food in this image. Ingredients specified: ${ingText}.\nRespond ONLY with valid JSON, no markdown:\n{"foodName":"Food Name","description":"One sentence description","calories":0,"carbs":0,"protein":0,"fat":0,"fiber":0,"sodium":0,"tips":"One nutrition tip"}` }
+          ]
+        }]
+      })
+    });
+    const data = await res.json();
+    const parsed = JSON.parse(data.content[0].text.replace(/```json|```/g, '').trim());
+    renderResult(parsed);
+    addToLog(parsed);
+  } catch(e) {
+    document.getElementById('error-section').classList.remove('hidden');
+    document.getElementById('error-msg').textContent = '⚠️ Analysis failed. Please try again.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'ANALYZE CALORIES';
+  }
+}
+
+function setCircle(svgId, pct, circ) {
+  const arc = document.querySelector('#' + svgId + ' circle:last-child');
+  if (!arc) return;
+  const dash = (Math.min(pct, 100) / 100) * circ;
+  arc.setAttribute('stroke-dasharray', `${dash} ${circ}`);
+}
+
+function renderResult(r) {
+  const calPct = Math.min(Math.round((r.calories / 2000) * 100), 100);
+
+  document.getElementById('res-cal').textContent = r.calories;
+  document.getElementById('res-name').textContent = r.foodName.toUpperCase();
+  document.getElementById('res-desc').textContent = r.description;
+  document.getElementById('circle-pct').textContent = calPct + '%';
+  document.getElementById('cal-bar').style.width = calPct + '%';
+  document.getElementById('cal-sub').textContent = calPct + '% of 2,000 kcal daily goal';
+
+  // Main circle
+  const mainCirc = 2 * Math.PI * 27;
+  const mainArc = document.getElementById('circle-arc');
+  const mainDash = (calPct / 100) * mainCirc;
+  mainArc.setAttribute('stroke-dasharray', `${mainDash} ${mainCirc}`);
+
+  document.getElementById('res-protein').textContent = r.protein;
+  document.getElementById('res-carbs').textContent = r.carbs;
+  document.getElementById('res-fat').textContent = r.fat;
+
+  const smallCirc = 2 * Math.PI * 13;
+  setCircle('circ-protein', Math.min(Math.round((r.protein / 80) * 100), 100), smallCirc);
+  setCircle('circ-carbs', Math.min(Math.round((r.carbs / 130) * 100), 100), smallCirc);
+  setCircle('circ-fat', Math.min(Math.round((r.fat / 40) * 100), 100), smallCirc);
+
+  document.getElementById('res-fiber').innerHTML = r.fiber + '<span class="extra-unit">g</span>';
+  document.getElementById('res-fiber').style.color = '#30d158';
+  document.getElementById('res-sodium').innerHTML = r.sodium + '<span class="extra-unit">mg</span>';
+  document.getElementById('res-sodium').style.color = '#5e5ce6';
+
+  document.getElementById('res-tip').textContent = r.tips || '';
+
+  document.getElementById('results').classList.remove('hidden');
+}
+
+function addToLog(r) {
+  log.unshift({ ...r, img: imageURL });
+  if (log.length > 5) log.pop();
+  renderLog();
+}
+
+function renderLog() {
+  const section = document.getElementById('log-section');
+  const list = document.getElementById('log-list');
+  if (!log.length) { section.classList.add('hidden'); return; }
+  section.classList.remove('hidden');
+  list.innerHTML = '';
+  log.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'log-item';
+    div.innerHTML = `
+      ${item.img ? `<img class="log-img" src="${item.img}" alt="">` : ''}
+      <div style="flex:1">
+        <div class="log-cals">🔥 ${item.calories} <span>calories</span></div>
+        <div class="log-name">${item.foodName}</div>
+      </div>
+      <div class="log-macros">P ${item.protein}g · C ${item.carbs}g · F ${item.fat}g</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+buildTags();
+</script>
+</body>
+</html>
