@@ -384,42 +384,62 @@ function resetApp() {
 }
 
 async function analyze() {
+
   if (!imageBase64) return;
+
   const btn = document.getElementById('analyze-btn');
+
   btn.disabled = true;
   btn.textContent = 'ANALYZING...';
+
   document.getElementById('error-section').classList.add('hidden');
   document.getElementById('results').classList.add('hidden');
 
-  const ings = [...PROTEIN, ...SEASONING].filter(i => selected[i.id]);
-  const ingText = ings.length ? ings.map(i => `${i.label}(${amounts[i.id]||'Med'})`).join(', ') : 'not specified';
+  const ings = [...PROTEIN, ...SEASONING]
+    .filter(i => selected[i.id]);
+
+  const ingText = ings.length
+    ? ings.map(i => `${i.label}(${amounts[i.id] || 'Med'})`).join(', ')
+    : 'not specified';
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 } },
-            { type: 'text', text: `You are a nutrition expert. Analyze the food in this image. Ingredients specified: ${ingText}.\nRespond ONLY with valid JSON, no markdown:\n{"foodName":"Food Name","description":"One sentence description","calories":0,"carbs":0,"protein":0,"fat":0,"fiber":0,"sodium":0,"tips":"One nutrition tip"}` }
-          ]
-        }]
-      })
-    });
-    const data = await res.json();
-    const parsed = JSON.parse(data.content[0].text.replace(/```json|```/g, '').trim());
-    renderResult(parsed);
-    addToLog(parsed);
-  } catch(e) {
+
+    const res = await fetch(
+      'https://script.google.com/macros/s/AKfycbwEDG9SgJjkM5HQqMdIrAozb4LObfMbIApk7Qguw9T2v7PYARNA8IxMheLwqnNd9CBW/exec',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          image: imageBase64,
+          ingredients: ingText
+        })
+      }
+    );
+
+    const result = await res.json();
+
+    if (result.error) {
+      throw new Error(result.error);
+    }
+
+    renderResult(result);
+    addToLog(result);
+
+  } catch (e) {
+
+    console.error(e);
+
     document.getElementById('error-section').classList.remove('hidden');
-    document.getElementById('error-msg').textContent = '⚠️ Analysis failed. Please try again.';
+    document.getElementById('error-msg').textContent =
+      '⚠️ Analysis failed. Please try again.';
+
   } finally {
+
     btn.disabled = false;
     btn.textContent = 'ANALYZE CALORIES';
+
   }
 }
 
