@@ -416,22 +416,35 @@ async function analyze() {
 
     console.log("RAW RESPONSE:", text);
 
+    // ลบ markdown code block ที่ Gemini ชอบส่งกลับมา
+    const cleanText = text
+      .replace(/```json/gi, '')
+      .replace(/```/g, '')
+      .trim();
+
+    console.log("CLEAN RESPONSE:", cleanText);
+
     let parsed;
 
     try {
-      parsed = JSON.parse(text);
-    } catch {
-      throw new Error("Server did not return valid JSON:\n" + text);
+      parsed = JSON.parse(cleanText);
+    } catch (err) {
+      throw new Error(
+        "Server did not return valid JSON:\n\n" +
+        cleanText
+      );
     }
 
     console.log("PARSED RESPONSE:", parsed);
 
+    // รองรับ error format หลายแบบ
     if (parsed.error) {
 
       const errorMessage =
         typeof parsed.error === 'string'
           ? parsed.error
-          : JSON.stringify(parsed.error, null, 2);
+          : parsed.error.message ||
+            JSON.stringify(parsed.error, null, 2);
 
       throw new Error(errorMessage);
     }
@@ -445,6 +458,11 @@ async function analyze() {
       throw new Error(errorMessage);
     }
 
+    // ตรวจว่ามีข้อมูลอาหารจริง
+    if (!parsed.foodName) {
+      throw new Error("Food analysis data not found");
+    }
+
     renderResult(parsed);
     addToLog(parsed);
 
@@ -455,7 +473,7 @@ async function analyze() {
     document.getElementById('error-section').classList.remove('hidden');
 
     document.getElementById('error-msg').textContent =
-      '⚠️ ' + e.message;
+      '⚠️ ' + (e.message || 'Unknown error');
 
   } finally {
 
